@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 import tensorflow as tf
 import numpy as np
-from features import uid_features, author_features, music_features, normalize_features
+from features import uid_features, author_features, music_features, normalize_features,ucity_features
 from data_io import read_final_track2_train, read_final_track2_test, read_track2_title
 from data_io import map_title, timer
 
@@ -104,7 +104,9 @@ if __name__ == "__main__":
     with timer("2. creating features of uid and author"):
         df_uid_feature = uid_features(df_feat)
         df_author_feature = author_features(df_feat)
-        # df_music_feature = music_features(df_feat)
+        # add music_feature
+        df_music_feature = music_features(df_feat)
+        df_city_feature = ucity_features(df_feat)
 
     # with timer("read_track2_title"):
     # item_id, seq = read_track2_title()
@@ -121,7 +123,12 @@ if __name__ == "__main__":
         df_model = df_model.merge(
             df_author_feature, on='author_id', how='left')
         df_test = df_test.merge(df_author_feature, on='author_id', how='left')
-        # df_model = df_model.merge(df_music_feature, on='music_id', how='left')
+        # merge music and city user features
+        df_model = df_model.merge(df_music_feature, on='music_id', how='left')
+        df_test = df_test.merge(df_music_feature, on='music_id', how='left')
+        # merge city user features
+        df_model = df_model.merge(df_city_feature, on='user_city', how='left')
+        df_test = df_test.merge(df_city_feature, on='user_city', how='left')
 
         df_model = df_model.fillna(df_model.mean()) # fill nan as mean
         df_test = df_test.fillna(df_test.mean())
