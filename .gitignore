@@ -1,6 +1,6 @@
-.txt
-.pyc
+*.txt
+*.pyc
 .idea
-.csv
-.tgz
+*.tgz
+
 
