@@ -8,14 +8,54 @@ import time
 import sys
 import features
 
-def read_track2_video_features():
-    pass
+def read_track2_video_features(chunkSize=4000000, maxlen=128):
+    path = 'input/track2_video_features_65535.txt'
+    item_id = np.zeros((chunkSize, 1)).astype(np.int)
+    seq = np.zeros((chunkSize, maxlen)).astype(np.float)
 
-def read_track2_audio_features():
-    pass
+    with open(path, 'r') as f:
+        for i, line in enumerate(f):
+            if i >= chunkSize:
+                break
+            content = json.loads(line)
+            dims = content['video_feature_dim_128']
+            col_num = min(128, len(dims))
+            item_id[i] = int(content['item_id'])
+            seq[i, :col_num] = dims[:col_num]
+    return item_id[:i], seq[:i]
 
-def read_track2_face_attrs():
-    pass
+def read_track2_audio_features(chunkSize=4000000, maxlen=128):
+    path = 'input/track2_audio_features_100000.txt'
+    item_id = np.zeros((chunkSize, 1)).astype(np.int)
+    seq = np.zeros((chunkSize, maxlen)).astype(np.float)
+
+    with open(path, 'r') as f:
+        for i, line in enumerate(f):
+            if i >= chunkSize:
+                break
+            content = json.loads(line)
+            dims = content['audio_feature_128_dim']
+            col_num = min(128, len(dims))
+            item_id[i] = int(content['item_id'])
+            seq[i, :col_num] = dims[:col_num]
+    return item_id[:i], seq[:i]
+
+def read_track2_face_attrs(chunkSize=4000000, maxlen=10):
+    path = 'input/track2_face_attrs_100000.txt'
+
+    item_id = np.zeros((chunkSize, 1)).astype(np.int)
+    seq = list()
+    with open(path, 'r') as f:
+        for i, line in enumerate(f):
+            if i >= chunkSize:
+                break
+            content = json.loads(line)
+            attrs = content['face_attrs']
+
+            item_id[i] = int(content['item_id'])
+            seq.append(attrs)
+    return item_id[:i], seq
+
 
 def read_chunk(reader, chunkSize):
     chunks = []
@@ -62,7 +102,7 @@ def read_final_track2_test(chunkSize=100000):
 
 def read_track2_title(chunkSize=4000000, maxlen=10):
 
-    path = 'input/track2_title.txt'  # 3114071 rows
+    path = 'input/track2_title_100000.txt'  # 3114071 rows
 
     item_id = np.zeros((chunkSize, 1)).astype(np.int)
     seq = np.zeros((chunkSize, maxlen)).astype(np.int)

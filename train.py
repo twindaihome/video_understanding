@@ -14,6 +14,7 @@ import numpy as np
 from features import uid_features, author_features, music_features, normalize_features,ucity_features
 from data_io import read_final_track2_train, read_final_track2_test, read_track2_title
 from data_io import map_title, timer
+from data_io import read_track2_face_attrs, read_track2_video_features, read_track2_audio_features
 
 SEED = 2019
 
@@ -107,11 +108,23 @@ if __name__ == "__main__":
         df_music_feature = music_features(df_feat)
         df_city_feature = ucity_features(df_feat)
 
-    # with timer("read_track2_title"):
-    # item_id, seq = read_track2_title()
+    with timer("2.2 read_track2_title"):
+        item_id, seq = read_track2_title()
 
-    # with timer("map title with train data"):
-    # seq_order = map_title(df, item_id, seq)
+    with timer(">>> read_track2_face"):
+        item_id_face, seq_face = read_track2_face_attrs()
+        print(len(item_id_face))
+
+    with timer(">>> read_track2_video"):
+        item_id_video, seq_video = read_track2_video_features()
+        print(len(item_id_video))
+
+    with timer(">>> read_track2_audio"):
+        item_id_audio, seq_audio = read_track2_audio_features()
+        print(len(item_id_audio))
+
+    with timer("2.3 map title with train data"):
+        seq_order = map_title(df, item_id, seq)
 
     with timer("3. normalizing the features"):
         df_model, df_test = normalize_features(df_model, df_test)
