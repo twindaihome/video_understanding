@@ -7,6 +7,8 @@ from contextlib import contextmanager
 import time
 import sys
 
+def read_track2_video_features():
+    pass
 
 def read_chunk(reader, chunkSize):
     chunks = []
