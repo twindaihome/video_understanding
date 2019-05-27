@@ -31,8 +31,7 @@ def train_ridge(x_train, x_valid, y_train, y_valid):
     # preds = np.hstack(preds)
     # print(roc_auc_score(y_valid, preds.mean(1)))
 
-    # y_pred = clf.predict(x_valid)
-    print(roc_auc_score(y_valid, y_pred))
+    # print('roc_auc_score:',roc_auc_score(y_valid, y_pred))
 
     return clf
 
@@ -74,7 +73,7 @@ def tf_roc(): # t
             print(roc_auc_score(y_2, x_2))
 
 
-def draw_roc(y_valid, y_pred):
+def draw_roc(y_valid, y_pred,title):
 
     fpr, tpr, _ = roc_curve(y_valid, y_pred)
 
@@ -86,9 +85,9 @@ def draw_roc(y_valid, y_pred):
     plt.ylim([0.0, 1.05])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('Receiver operating characteristic example')
+    plt.title(title)
     plt.legend(loc="lower right")
-    plt.savefig('roc.png')
+    plt.savefig('output/{}.png'.format(title))
 
 
 if __name__ == "__main__":
@@ -118,20 +117,20 @@ if __name__ == "__main__":
         df_model, df_test = normalize_features(df_model, df_test)
 
         df_model = df_model.merge(df_uid_feature, on='uid', how='left')
-        df_test = df_test.merge(df_uid_feature, on='uid', how='left')
+        # df_test = df_test.merge(df_uid_feature, on='uid', how='left')
 
         df_model = df_model.merge(
             df_author_feature, on='author_id', how='left')
-        df_test = df_test.merge(df_author_feature, on='author_id', how='left')
+        # df_test = df_test.merge(df_author_feature, on='author_id', how='left')
         # merge music and city user features
         df_model = df_model.merge(df_music_feature, on='music_id', how='left')
-        df_test = df_test.merge(df_music_feature, on='music_id', how='left')
+        # df_test = df_test.merge(df_music_feature, on='music_id', how='left')
         # merge city user features
         df_model = df_model.merge(df_city_feature, on='user_city', how='left')
-        df_test = df_test.merge(df_city_feature, on='user_city', how='left')
+        # df_test = df_test.merge(df_city_feature, on='user_city', how='left')
 
         df_model = df_model.fillna(df_model.mean()) # fill nan as mean
-        df_test = df_test.fillna(df_test.mean())
+        # df_test = df_test.fillna(df_test.mean())
 
         df_train, df_valid = train_test_split(
             df_model, random_state=SEED, shuffle=False, test_size=0.2)
@@ -150,18 +149,24 @@ if __name__ == "__main__":
         like_train, like_valid = \
             df_train['like'].values, df_valid['like'].values
 
-        y_train, y_valid = finish_train, finish_valid
-        model_finish = train_ridge(x_train, x_valid, y_train, y_valid)
-        y_train, y_valid = like_train, like_valid
-        model_like = train_ridge(x_train, x_valid, y_train, y_valid)
-        # y_pred = model.predict(x_valid)
-        # print(roc_auc_score(y_valid, y_pred))
+        # y_train, y_valid = finish_train, finish_valid
+        model_finish = train_ridge(x_train, x_valid, finish_train, finish_valid)
 
-        # draw_roc(y_valid, y_pred)
-    with timer("5. predicting the result of test set"):
-        x_test = df_test.loc[:, col_feat].values
-        df_test['finish_probability'] = model_finish.predict(x_test)
-        df_test['like_probability'] = model_like.predict(x_test)
-        df_test['finish_probability'] = df_test['finish_probability'].clip(0, 1)
-        df_test['like_probability'] = df_test['like_probability'].clip(0, 1)
-        df_test.loc[:,['uid','item_id','finish_probability','like_probability']].to_csv('output/result.csv',index=False)
+        # y_train, y_valid = like_train, like_valid
+        model_like = train_ridge(x_train, x_valid, like_train, like_valid)
+
+        y_pred_finish = model_finish.predict(x_valid)
+        print('finish ROC ACC:', roc_auc_score(finish_valid, y_pred_finish))
+        draw_roc(finish_valid, y_pred_finish,'Receiver operating characteristic Curve for finish')
+
+        y_pred_like = model_like.predict(x_valid)
+        print('like ROC ACC:', roc_auc_score(like_valid, y_pred_like))
+        draw_roc(like_valid, y_pred_like, 'Receiver operating characteristic Curve for like')
+
+    # with timer("5. predicting the result of test set"):
+    #     x_test = df_test.loc[:, col_feat].values
+    #     df_test['finish_probability'] = model_finish.predict(x_test)
+    #     df_test['like_probability'] = model_like.predict(x_test)
+    #     df_test['finish_probability'] = df_test['finish_probability'].clip(0, 1)
+    #     df_test['like_probability'] = df_test['like_probability'].clip(0, 1)
+    #     df_test.loc[:,['uid','item_id','finish_probability','like_probability']].to_csv('output/result.csv',index=False)
