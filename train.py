@@ -134,21 +134,12 @@ if __name__ == "__main__":
 
     with timer(">>> read_track2_face"):
         df_face = read_track2_face_attrs(chunk)
-        df_face_feat, df_face_model = train_test_split(
-            df_face, random_state=SEED, shuffle=True, test_size=0.3
-        )
 
     with timer(">>> read_track2_video"):
         df_video = read_track2_video_features(chunk)
-        df_video_feat, df_video_model = train_test_split(
-            df_video, random_state=SEED, shuffle=True, test_size=0.3
-        )
 
     with timer(">>> read_track2_audio"):
         df_audio = read_track2_audio_features(10000)
-        df_audio_feat, df_audio_model = train_test_split(
-            df_audio, random_state=SEED, shuffle=True, test_size=0.3
-        )
 
     with timer("2.3 map title with train data"):
         seq_order = map_title(df, item_id, seq)
@@ -157,12 +148,10 @@ if __name__ == "__main__":
         df_model, df_test = normalize_features(df_model, df_test) # normalize and map'duration time', 'music id', 'device' and 'channel'.
         # df_model = normalize_features(df_model)  # we don't use test set
 
-        df_model = df_model.merge(df_face_model, on='item_id', how='left')
-        df_model = df_model.merge(df_video_model, on='item_id', how='left')
-        df_model = df_model.merge(df_audio_model, on='item_id', how='left')
-        # df_test = df_test.merge(df_face_feat, on='item_id', how='left')
-        # df_test = df_test.merge(df_video_feat, on='item_id', how='left')
-        # df_test = df_test.merge(df_audio_feat, on='item_id', how='left')
+        df_model = df_model.merge(df_face, on='item_id', how='left')
+        df_model = df_model.merge(df_video, on='item_id', how='left')
+        df_model = df_model.merge(df_audio, on='item_id', how='left')
+        df_model = df_model.merge(df_title, on='item_id', how='left')
 
         df_model = df_model.merge(df_uid_feature, on='uid', how='left')
         # df_test = df_test.merge(df_uid_feature, on='uid', how='left')

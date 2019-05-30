@@ -23,6 +23,8 @@ def read_list_feature(filename, keyname, chunkSize=4000000, dimLength=128, prima
     
             if keyname == 'face_attrs':
                 for idx, attr in enumerate(key_data) :
+                    if (idx*6+7) > dimLength:
+                        break
                     # each face attr has 6 dims, the 1st of row in item_id
                     row[idx*6+1 : idx*6+7] = [attr['gender'], attr['beauty']] + attr['relative_position']
             else:
@@ -30,8 +32,8 @@ def read_list_feature(filename, keyname, chunkSize=4000000, dimLength=128, prima
                 row[1 : col_num+1] = key_data[:col_num]
 
             rows.append(row)
-    data = pd.DataFrame(rows)
-    data.rename(columns={0:'item_id'}, inplace=True)
+    data = pd.DataFrame(rows, columns=[keyname + '_' + str(x) for x in range(dimLength+1)])
+    data.rename(columns={keyname + '_0' : 'item_id'}, inplace=True)
     return data
 
 def read_track2_video_features(chunkSize=4000000, maxlen=128):
@@ -41,7 +43,7 @@ def read_track2_audio_features(chunkSize=4000000, maxlen=128):
     return read_list_feature('track2_audio_features_100000.txt', 'audio_feature_128_dim', chunkSize, maxlen)
     path = 'input/track2_audio_features_100000.txt'
 
-def read_track2_face_attrs(chunkSize=4000000, maxlen=10):
+def read_track2_face_attrs(chunkSize=4000000, maxlen=128):
     return read_list_feature('track2_face_attrs_100000.txt', 'face_attrs', chunkSize, maxlen)
 
 def read_chunk(reader, chunkSize):
