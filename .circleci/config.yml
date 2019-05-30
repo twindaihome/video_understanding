@@ -1,0 +1,6 @@
+steps:
+  - run: "Add any bash command you want here"
+  - run:
+      command: |
+        echo "Arbitrary multi-line bash"
+        echo "Copy-paste from 'Execute Shell' in Jenkins"
