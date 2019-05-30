@@ -5,10 +5,10 @@ os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 from sklearn.linear_model import Ridge, Lasso, LassoCV, RidgeCV, LinearRegression,SGDClassifier,BayesianRidge,LogisticRegressionCV,ElasticNetCV
-from sklearn.svm import LinearSVR,SVC
+from sklearn.svm import SVR,SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import auc, roc_curve, roc_auc_score
+from sklearn.metrics import auc, roc_curve, roc_auc_score,accuracy_score,confusion_matrix
 import matplotlib.pyplot as plt
 
 # import tensorflow as tf
@@ -35,7 +35,7 @@ def train_ridge(x_train, x_valid, y_train, y_valid,classifier):
     if classifier == 'ElaNet':
         clf = ElasticNetCV(cv=5, random_state=0)
     if classifier == 'SVR': # Linear Support Vector Regression, no better than chance
-        clf = LinearSVR(random_state=None, tol=1e-5)
+        clf = SVC(gamma = 'scale', tol=1e-5)
     if classifier == 'SGD': # no better than chance
         clf = SGDClassifier(loss='log',max_iter=1000000, tol=1e-3)
     if classifier == 'RF': # no better than chance
@@ -166,13 +166,14 @@ if __name__ == "__main__":
         df_train, df_valid = train_test_split(
             df_model, random_state=SEED, shuffle=False, test_size=0.2)
 
-    with timer("4. training the model"):
-        classifier = 'ElaNet'
+    with timer("4. training the main model"):
+        classifier = 'SVR'
 
         col_feat = [
             'duration_time', 'uid_view', 'uid_finish', 'uid_like',
             'author_view', 'author_finish', 'author_like'
         ]
+
         x_train = df_train.loc[:, col_feat].values # Return a Numpy representation of the DataFrame.
         x_valid = df_valid.loc[:, col_feat].values
 
@@ -182,19 +183,23 @@ if __name__ == "__main__":
         like_train, like_valid = \
             df_train['like'].values, df_valid['like'].values
 
-        # y_train, y_valid = finish_train, finish_valid
-        model_finish = train_ridge(x_train, x_valid, finish_train, finish_valid,classifier)
+        y_train_finish, y_valid_finish = finish_train, finish_valid
+        model_finish = train_ridge(x_train, x_valid, y_train_finish, y_valid_finish, classifier)
 
-        # y_train, y_valid = like_train, like_valid
-        model_like = train_ridge(x_train, x_valid, like_train, like_valid,classifier)
+        y_train_like, y_valid_like = like_train, like_valid
+        model_like = train_ridge(x_train, x_valid, y_train_like, y_valid_like, classifier)
 
         y_pred_finish = model_finish.predict(x_valid)
-        print('finish ROC ACC:', roc_auc_score(finish_valid, y_pred_finish))
-        draw_roc(finish_valid, y_pred_finish,'Receiver operating characteristic Curve for finish')
+        #print('finish ROC ACC:', roc_auc_score(finish_valid, y_pred_finish))
+        print('finish confusion_matrix:', confusion_matrix(y_valid_finish, y_pred_finish))
+        print('finish accuracy_score:', accuracy_score(y_valid_finish, y_pred_finish))
+        #draw_roc(finish_valid, y_pred_finish,'Receiver operating characteristic Curve for finish')
 
         y_pred_like = model_like.predict(x_valid)
-        print('like ROC ACC:', roc_auc_score(like_valid, y_pred_like))
-        draw_roc(like_valid, y_pred_like, 'Receiver operating characteristic Curve for like')
+        #print('like ROC ACC:', roc_auc_score(like_valid, y_pred_like))
+        print('like confusion_matrix:', confusion_matrix(y_valid_like, y_pred_like))
+        print('like accuracy_score:', accuracy_score(y_valid_like, y_pred_like))
+        #draw_roc(like_valid, y_pred_like, 'Receiver operating characteristic Curve for like')
 
     # with timer("5. predicting the result of test set"):
     #     x_test = df_test.loc[:, col_feat].values
@@ -203,3 +208,36 @@ if __name__ == "__main__":
     #     df_test['finish_probability'] = df_test['finish_probability'].clip(0, 1)
     #     df_test['like_probability'] = df_test['like_probability'].clip(0, 1)
     #     df_test.loc[:,['uid','item_id','finish_probability','like_probability']].to_csv('output/result.csv',index=False)
+
+'''
+    with timer("4. train the text model"):
+        classifier = 'SVR'
+
+        x_train = seq.loc[:, -1].values  # Return a Numpy representation of the DataFrame.
+        x_valid = seq.loc[:, -1].values
+
+        # \ is to change to another line after '='
+        finish_train, finish_valid = \
+            df_train['finish'].values, df_valid['finish'].values
+        like_train, like_valid = \
+            df_train['like'].values, df_valid['like'].values
+
+        y_train_finish, y_valid_finish = finish_train, finish_valid
+        model_finish = train_ridge(x_train, x_valid, y_train_finish, y_valid_finish, classifier)
+
+        y_train_like, y_valid_like = like_train, like_valid
+        model_like = train_ridge(x_train, x_valid, y_train_like, y_valid_like, classifier)
+
+        y_pred_finish = model_finish.predict(x_valid)
+        # print('finish ROC ACC:', roc_auc_score(finish_valid, y_pred_finish))
+        print('finish confusion_matrix:', confusion_matrix(y_valid_finish, y_pred_finish))
+        print('finish accuracy_score:', accuracy_score(y_valid_finish, y_pred_finish))
+        # draw_roc(finish_valid, y_pred_finish,'Receiver operating characteristic Curve for finish')
+
+        y_pred_like = model_like.predict(x_valid)
+        # print('like ROC ACC:', roc_auc_score(like_valid, y_pred_like))
+        print('like confusion_matrix:', confusion_matrix(y_valid_like, y_pred_like))
+        print('like accuracy_score:', accuracy_score(y_valid_like, y_pred_like))
+        # draw_roc(like_valid, y_pred_like, 'Receiver operating characteristic Curve for like')
+
+'''
