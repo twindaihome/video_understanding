@@ -8,54 +8,41 @@ import time
 import sys
 import features
 
-def read_track2_video_features(chunkSize=4000000, maxlen=128):
-    path = 'input/track2_video_features_65535.txt'
-    item_id = np.zeros((chunkSize, 1)).astype(np.int)
-    seq = np.zeros((chunkSize, maxlen)).astype(np.float)
-
+def read_list_feature(filename, keyname, chunkSize=4000000, dimLength=128, primaryKey='item_id'):
+    path = 'input/' + filename
+    rows = list()
     with open(path, 'r') as f:
         for i, line in enumerate(f):
             if i >= chunkSize:
                 break
+            row = [0] * (dimLength + 1)
             content = json.loads(line)
-            dims = content['video_feature_dim_128']
-            col_num = min(128, len(dims))
-            item_id[i] = int(content['item_id'])
-            seq[i, :col_num] = dims[:col_num]
-    return item_id[:i], seq[:i]
+            item_id = int(content[primaryKey])
+            row[0] = item_id
+            key_data = content[keyname]
+    
+            if keyname == 'face_attrs':
+                for idx, attr in enumerate(key_data) :
+                    # each face attr has 6 dims, the 1st of row in item_id
+                    row[idx*6+1 : idx*6+7] = [attr['gender'], attr['beauty']] + attr['relative_position']
+            else:
+                col_num = min(dimLength, len(key_data))
+                row[1 : col_num+1] = key_data[:col_num]
+
+            rows.append(row)
+    data = pd.DataFrame(rows)
+    data.rename(columns={0:'item_id'}, inplace=True)
+    return data
+
+def read_track2_video_features(chunkSize=4000000, maxlen=128):
+    return read_list_feature('track2_video_features_65535.txt', 'video_feature_dim_128', chunkSize, maxlen)
 
 def read_track2_audio_features(chunkSize=4000000, maxlen=128):
+    return read_list_feature('track2_audio_features_100000.txt', 'audio_feature_128_dim', chunkSize, maxlen)
     path = 'input/track2_audio_features_100000.txt'
-    item_id = np.zeros((chunkSize, 1)).astype(np.int)
-    seq = np.zeros((chunkSize, maxlen)).astype(np.float)
-
-    with open(path, 'r') as f:
-        for i, line in enumerate(f):
-            if i >= chunkSize:
-                break
-            content = json.loads(line)
-            dims = content['audio_feature_128_dim']
-            col_num = min(128, len(dims))
-            item_id[i] = int(content['item_id'])
-            seq[i, :col_num] = dims[:col_num]
-    return item_id[:i], seq[:i]
 
 def read_track2_face_attrs(chunkSize=4000000, maxlen=10):
-    path = 'input/track2_face_attrs_100000.txt'
-
-    item_id = np.zeros((chunkSize, 1)).astype(np.int)
-    seq = list()
-    with open(path, 'r') as f:
-        for i, line in enumerate(f):
-            if i >= chunkSize:
-                break
-            content = json.loads(line)
-            attrs = content['face_attrs']
-
-            item_id[i] = int(content['item_id'])
-            seq.append(attrs)
-    return item_id[:i], seq
-
+    return read_list_feature('track2_face_attrs_100000.txt', 'face_attrs', chunkSize, maxlen)
 
 def read_chunk(reader, chunkSize):
     chunks = []
