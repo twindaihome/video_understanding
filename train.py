@@ -109,10 +109,10 @@ def draw_roc(y_valid, y_pred,title):
 
 
 if __name__ == "__main__":
-
+    chunk = 4000000
     with timer("1. reading final track2 data"):
-        df = read_final_track2_train(100000)
-        df_test = read_final_track2_test(100000)
+        df = read_final_track2_train(chunk)
+        df_test = read_final_track2_test(chunk)
 
         df_feat, df_model = train_test_split(
             df, random_state=SEED, shuffle=True, test_size=0.3
@@ -126,19 +126,25 @@ if __name__ == "__main__":
         df_city_feature = ucity_features(df_feat)
 
     with timer("2.2 read_track2_title"):
-        item_id, seq = read_track2_title()
+        item_id, seq = read_track2_title(chunk)
 
     with timer(">>> read_track2_face"):
-        item_id_face, seq_face = read_track2_face_attrs()
-        print(len(item_id_face))
+        df_face = read_track2_face_attrs(chunk)
+        df_face_feat, df_face_model = train_test_split(
+            df_face, random_state=SEED, shuffle=True, test_size=0.3
+        )
 
     with timer(">>> read_track2_video"):
-        item_id_video, seq_video = read_track2_video_features()
-        print(len(item_id_video))
+        df_video = read_track2_video_features(chunk)
+        df_video_feat, df_video_model = train_test_split(
+            df_video, random_state=SEED, shuffle=True, test_size=0.3
+        )
 
     with timer(">>> read_track2_audio"):
-        item_id_audio, seq_audio = read_track2_audio_features()
-        print(len(item_id_audio))
+        df_audio = read_track2_audio_features(10000)
+        df_audio_feat, df_audio_model = train_test_split(
+            df_audio, random_state=SEED, shuffle=True, test_size=0.3
+        )
 
     with timer("2.3 map title with train data"):
         seq_order = map_title(df, item_id, seq)
@@ -147,15 +153,24 @@ if __name__ == "__main__":
         df_model, df_test = normalize_features(df_model, df_test) # normalize and map'duration time', 'music id', 'device' and 'channel'.
         # df_model = normalize_features(df_model)  # we don't use test set
 
+        df_model = df_model.merge(df_face_model, on='item_id', how='left')
+        df_model = df_model.merge(df_video_model, on='item_id', how='left')
+        df_model = df_model.merge(df_audio_model, on='item_id', how='left')
+        # df_test = df_test.merge(df_face_feat, on='item_id', how='left')
+        # df_test = df_test.merge(df_video_feat, on='item_id', how='left')
+        # df_test = df_test.merge(df_audio_feat, on='item_id', how='left')
+
         df_model = df_model.merge(df_uid_feature, on='uid', how='left')
         # df_test = df_test.merge(df_uid_feature, on='uid', how='left')
 
         df_model = df_model.merge(
             df_author_feature, on='author_id', how='left')
         # df_test = df_test.merge(df_author_feature, on='author_id', how='left')
+
         # merge music and city user features
         df_model = df_model.merge(df_music_feature, on='music_id', how='left')
         # df_test = df_test.merge(df_music_feature, on='music_id', how='left')
+
         # merge city user features
         df_model = df_model.merge(df_city_feature, on='user_city', how='left')
         # df_test = df_test.merge(df_city_feature, on='user_city', how='left')
@@ -207,6 +222,7 @@ if __name__ == "__main__":
     #     df_test['like_probability'] = model_like.predict(x_test)
     #     df_test['finish_probability'] = df_test['finish_probability'].clip(0, 1)
     #     df_test['like_probability'] = df_test['like_probability'].clip(0, 1)
+    #     print(df_test['finish_probability'], df_test['like_probability'])
     #     df_test.loc[:,['uid','item_id','finish_probability','like_probability']].to_csv('output/result.csv',index=False)
 
 '''
