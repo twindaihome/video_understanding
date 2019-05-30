@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 
 # import tensorflow as tf
 import numpy as np
+import pandas as pd
 from features import uid_features, author_features, music_features, normalize_features,ucity_features
 from data_io import read_final_track2_train, read_final_track2_test, read_track2_title
 from data_io import map_title, timer
@@ -127,6 +128,9 @@ if __name__ == "__main__":
 
     with timer("2.2 read_track2_title"):
         item_id, seq = read_track2_title(chunk)
+        df_itemid = pd.DataFrame(item_id,columns = ['item_id'])
+        df_seq = pd.DataFrame(seq,columns = ['title {}'.format(i) for i in range(10)])
+        df_title = pd.concat([df_itemid,df_seq],axis = 1)
 
     with timer(">>> read_track2_face"):
         df_face = read_track2_face_attrs(chunk)
