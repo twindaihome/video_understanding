@@ -29,7 +29,7 @@ def uid_features(df):
         'like': 'uid_like'       # new like: uid_like(after average)
     })
     # 3. Standardize data
-    df_view['uid_view'] = df_view['uid_view'].clip(0, clip_75) # take 'uid_view' from o to clip_75
+    df_view['uid_view'] = df_view['uid_view'].clip(0, clip_75).astype(float) # take 'uid_view' from o to clip_75
     df_view['uid_view'] = ss.fit_transform(df_view['uid_view'].values.reshape(
         -1, 1)) # fit_transform--mean zero, std1, so the distribution of 'df_view['uid_view']' changes, and values.reshape(-1,1) only change it to an array with (nlength,1)
 
@@ -60,7 +60,7 @@ def author_features(df):
     })
 
     # 3. Standardize data
-    df_view['author_view'] = df_view['author_view'].clip(0, clip_75)
+    df_view['author_view'] = df_view['author_view'].clip(0, clip_75).astype(float)
     df_view['author_view'] = ss.fit_transform(
         df_view['author_view'].values.reshape(-1, 1))
 
@@ -91,7 +91,7 @@ def music_features(df):
     })
 
     # 3. Standardize data
-    df_view['music_view'] = df_view['music_view'].clip(0, clip_75)
+    df_view['music_view'] = df_view['music_view'].clip(0, clip_75).astype(float)
     df_view['music_view'] = ss.fit_transform(
         df_view['music_view'].values.reshape(-1, 1))
 
@@ -121,7 +121,7 @@ def ucity_features(df): # user_city
     })
 
     # 3. Standardize data
-    df_view['ucity_view'] = df_view['ucity_view'].clip(0, clip_75)
+    df_view['ucity_view'] = df_view['ucity_view'].clip(0, clip_75).astype(float)
     df_view['ucity_view'] = ss.fit_transform(
         df_view['ucity_view'].values.reshape(-1, 1))
 

@@ -8,8 +8,11 @@ import time
 import sys
 import features
 
-def read_list_feature(filename, keyname, chunkSize=4000000, dimLength=128, primaryKey='item_id'):
-    path = 'input/' + filename
+paths = {'video_path': 'input/track2_video_features_100000.txt', 'audio_path':'input/track2_audio_features_100000.txt',
+         'face_atts_path': 'input/track2_face_attrs_100000.txt', 'final_path':'input/final_track2_train_100000.txt',
+        'title_path':'input/track2_title_100000.txt','final_test_path':'input/final_track2_test_no_anwser_100000.txt'}
+
+def read_list_feature(path, keyname, chunkSize=4000000, dimLength=128, primaryKey='item_id'):
     rows = list()
     with open(path, 'r') as f:
         for i, line in enumerate(f):
@@ -37,14 +40,13 @@ def read_list_feature(filename, keyname, chunkSize=4000000, dimLength=128, prima
     return data
 
 def read_track2_video_features(chunkSize=4000000, maxlen=128):
-    return read_list_feature('track2_video_features_65535.txt', 'video_feature_dim_128', chunkSize, maxlen)
+    return read_list_feature(paths['video_path'], 'video_feature_dim_128', chunkSize, maxlen)
 
 def read_track2_audio_features(chunkSize=4000000, maxlen=128):
-    return read_list_feature('track2_audio_features_100000.txt', 'audio_feature_128_dim', chunkSize, maxlen)
-    path = 'input/track2_audio_features_100000.txt'
+    return read_list_feature(paths['audio_path'], 'audio_feature_128_dim', chunkSize, maxlen)
 
 def read_track2_face_attrs(chunkSize=4000000, maxlen=128):
-    return read_list_feature('track2_face_attrs_100000.txt', 'face_attrs', chunkSize, maxlen)
+    return read_list_feature(paths['face_atts_path'], 'face_attrs', chunkSize, maxlen)
 
 def read_chunk(reader, chunkSize):
     chunks = []
@@ -63,7 +65,7 @@ def read_chunk(reader, chunkSize):
 
 def read_final_track2_train(chunkSize=100000):
     loop = True
-    path = 'input/final_track2_train_100000.txt'
+    path = paths['final_path']
 
     cols = [
         'uid', 'user_city', 'item_id', 'author_id', 'item_city', 'channel',
@@ -77,7 +79,7 @@ def read_final_track2_train(chunkSize=100000):
     
 def read_final_track2_test(chunkSize=100000):
     loop = True
-    path = 'input/final_track2_test_no_anwser_100000.txt'
+    path = paths['final_test_path']
 
     cols = [
         'uid', 'user_city', 'item_id', 'author_id', 'item_city', 'channel',
@@ -91,7 +93,7 @@ def read_final_track2_test(chunkSize=100000):
 
 def read_track2_title(chunkSize=4000000, maxlen=10):
 
-    path = 'input/track2_title_100000.txt'  # 3114071 rows
+    path = paths['title_path'] # 3114071 rows
 
     item_id = np.zeros((chunkSize, 1)).astype(np.int)
     seq = np.zeros((chunkSize, maxlen)).astype(np.int)
