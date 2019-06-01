@@ -19,6 +19,7 @@ from data_io import read_final_track2_train, read_final_track2_test, read_track2
 from data_io import map_title, timer
 from data_io import read_track2_face_attrs, read_track2_video_features, read_track2_audio_features
 import data_io
+from fusion import fusion
 
 SEED = 2019
 
@@ -111,7 +112,10 @@ if __name__ == "__main__":
         # df_test = df_test.merge(df_city_feature, on='user_city', how='left')
         col_feat = col_feat + [
             'duration_time', 'uid_view', 'uid_finish', 'uid_like',
-            'author_view', 'author_finish', 'author_like']
+            'author_view', 'author_finish', 'author_like',
+            'music_view','music_finish','music_like',
+            'ucity_view','ucity_finish','ucity_like'
+        ]
 
     if modality== 'Train_title' or modality== 'Train_all':
         with timer(">>>  read_track2_title"):
@@ -123,7 +127,7 @@ if __name__ == "__main__":
         with timer(">>> map title with train data"):
             seq_order = map_title(df, item_id, seq) # not sure why do this, and we didnot use this later
             df_model = df_model.merge(df_title, on='item_id', how='left')
-            col_feat = col_feat + ['title_{}'.format(i) for i in range(10)]  # title training features
+            #col_feat = col_feat + ['title_{}'.format(i) for i in range(10)]  # title training features
 
     if modality == 'Train_face_atts' or modality == 'Train_all':
         with timer(">>> read_track2_face"):
@@ -151,7 +155,7 @@ if __name__ == "__main__":
             df_model, random_state=SEED, shuffle=False, test_size=0.2)
 
     with timer("4. training the main model"):
-        classifier = 'SVM'
+        classifier = 'fusion'
 
         x_train = df_train.loc[:, col_feat].values # Return a Numpy representation of the DataFrame.
         x_valid = df_valid.loc[:, col_feat].values
@@ -164,10 +168,10 @@ if __name__ == "__main__":
         print('features preparation done')
 
         y_train_finish, y_valid_finish = finish_train, finish_valid
-        model_finish = train_ridge(x_train, x_valid, y_train_finish, y_valid_finish, classifier)
+        model_finish = fusion(x_train,y_train_finish)
 
         y_train_like, y_valid_like = like_train, like_valid
-        model_like = train_ridge(x_train, x_valid, y_train_like, y_valid_like, classifier)
+        model_like = fusion(x_train,y_train_like)
 
         y_pred_finish = model_finish.predict(x_valid)
         print('finish ROC ACC:', roc_auc_score(finish_valid, y_pred_finish))
