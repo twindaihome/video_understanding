@@ -18,6 +18,7 @@ from features import uid_features, author_features, music_features, normalize_fe
 from data_io import read_final_track2_train, read_final_track2_test, read_track2_title
 from data_io import map_title, timer, concat_title_dim
 from data_io import read_track2_face_attrs, read_track2_video_features, read_track2_audio_features
+import data_io
 
 SEED = 2019
 
@@ -37,8 +38,8 @@ def train_ridge(x_train, x_valid, y_train, y_valid,classifier):
         clf = ElasticNetCV(cv=5, random_state=0)
     if classifier == 'SVM': # Linear Support Vector Regression, no better than chance
         clf = SVC(gamma = 'scale', tol=1e-5)
-    if classifier == 'LinearSVC': # Linear Support Vector Regression, no better than chance
-        clf = LinearSVC(tol=1e-25)
+    if classifier == 'LinearSVC':
+        clf = LinearSVC(tol=1e-10)
     if classifier == 'SGD': # no better than chance
         clf = SGDClassifier(loss='log',max_iter=1000000, tol=1e-3)
     if classifier == 'RF': # no better than chance
@@ -78,8 +79,9 @@ if __name__ == "__main__":
     chunk = 4000000
     col_feat = []
     modalities = ['Train_audio','Train_video','Train_title','Train_face_atts','Train_all','Train_main']
-    modality = modalities[2] # train_all takes 572s in the final training step
+    modality = modalities[4] # train_all takes 572s in the final training step
     print('This task is to {}'.format(modality))
+    print(data_io.paths)
 
     with timer("1. reading final track2 data(main)"):
         df = read_final_track2_train(chunk)
@@ -173,13 +175,13 @@ if __name__ == "__main__":
         model_like = train_ridge(x_train, x_valid, y_train_like, y_valid_like, classifier)
 
         y_pred_finish = model_finish.predict(x_valid)
-        #print('finish ROC ACC:', roc_auc_score(finish_valid, y_pred_finish))
+        print('finish ROC ACC:', roc_auc_score(finish_valid, y_pred_finish))
         print('finish confusion_matrix:', confusion_matrix(y_valid_finish, y_pred_finish))
         print('finish accuracy_score:', accuracy_score(y_valid_finish, y_pred_finish))
         #draw_roc(finish_valid, y_pred_finish,'Receiver operating characteristic Curve for finish')
 
         y_pred_like = model_like.predict(x_valid)
-        #print('like ROC ACC:', roc_auc_score(like_valid, y_pred_like))
+        print('like ROC ACC:', roc_auc_score(like_valid, y_pred_like))
         print('like confusion_matrix:', confusion_matrix(y_valid_like, y_pred_like))
         print('like accuracy_score:', accuracy_score(y_valid_like, y_pred_like))
         #draw_roc(like_valid, y_pred_like, 'Receiver operating characteristic Curve for like')
