@@ -89,7 +89,7 @@ if __name__ == "__main__":
         df_test = read_final_track2_test(chunk)
 
         df_feat, df_model = train_test_split(
-            df, random_state=SEED, shuffle=True, test_size=0.3
+            df, random_state=SEED, shuffle=True, test_size=0.5
         )  # some for generating feature, some for traing model
 
     with timer("2. creating features of uid and author"):
@@ -119,21 +119,6 @@ if __name__ == "__main__":
             'ucity_view','ucity_finish','ucity_like'
         ]
 
-    if modality== 'Train_title' or modality== 'Train_all':
-        with timer(">>>  read_track2_title"):
-            item_id, seq = read_track2_title(chunk)
-            # combined_seq = concanate_title_dim(seq)
-            df_item_id = pd.DataFrame(item_id,columns = ['item_id'])
-            df_seq = pd.DataFrame(seq,columns = ['title_{}'.format(i) for i in range(10)])
-            df_seq_concatenated = pd.DataFrame(concat_title_dim(df_seq, 16),columns = ['title_{}'.format(i) for i in range(16)])
-            print('>>> title dim generated')
-            df_title = pd.concat([df_item_id, df_seq_concatenated],axis = 1)
-
-        with timer(">>> map title with train data"):
-            seq_order = map_title(df, item_id, seq) # not sure why do this, and we didnot use this later
-            df_model = df_model.merge(df_title, on='item_id', how='left')
-            #col_feat = col_feat + ['title_{}'.format(i) for i in range(10)]  # title training features
-
     if modality == 'Train_face_atts' or modality == 'Train_all':
         with timer(">>> read_track2_face"):
             df_face = read_track2_face_attrs(chunk)
@@ -151,6 +136,21 @@ if __name__ == "__main__":
             df_audio = read_track2_audio_features(chunk)
             df_model = df_model.merge(df_audio, on='item_id', how='left')
             col_feat = col_feat + ['audio_feature_128_dim_{}'.format(i + 1) for i in range(128)]
+
+    if modality== 'Train_title' or modality== 'Train_all':
+        with timer(">>>  read_track2_title"):
+            item_id, seq = read_track2_title(chunk)
+            # combined_seq = concanate_title_dim(seq)
+            df_item_id = pd.DataFrame(item_id,columns = ['item_id'])
+            df_seq = pd.DataFrame(seq,columns = ['title_{}'.format(i) for i in range(10)])
+            df_seq_concatenated = pd.DataFrame(concat_title_dim(df_seq, 16),columns = ['title_{}'.format(i) for i in range(16)])
+            print('>>> title dim generated')
+            df_title = pd.concat([df_item_id, df_seq_concatenated],axis = 1)
+
+        with timer(">>> map title with train data"):
+            seq_order = map_title(df, item_id, seq) # not sure why do this, and we didnot use this later
+            df_model = df_model.merge(df_title, on='item_id', how='left')
+            col_feat = col_feat + ['title_{}'.format(i) for i in range(16)]  # title training features
 
     with timer("3.x filling na and spliting the df_model"):
         df_model = df_model.fillna(df_model.mean())  # fill nan as mean
