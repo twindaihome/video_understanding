@@ -5,7 +5,7 @@ os.environ['QT_QPA_PLATFORM'] = 'offscreen'
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 from sklearn.linear_model import Ridge, Lasso, LassoCV, RidgeCV, LinearRegression,SGDClassifier,BayesianRidge,LogisticRegressionCV,ElasticNetCV
-from sklearn.svm import SVR,SVC
+from sklearn.svm import SVR,SVC, LinearSVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import auc, roc_curve, roc_auc_score,accuracy_score,confusion_matrix
