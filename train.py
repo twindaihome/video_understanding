@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 from features import uid_features, author_features, music_features, normalize_features,ucity_features
 from data_io import read_final_track2_train, read_final_track2_test, read_track2_title
-from data_io import map_title, timer
+from data_io import map_title, timer, concat_title_dim
 from data_io import read_track2_face_attrs, read_track2_video_features, read_track2_audio_features
 import data_io
 
@@ -37,6 +37,8 @@ def train_ridge(x_train, x_valid, y_train, y_valid,classifier):
     if classifier == 'ElaNet':
         clf = ElasticNetCV(cv=5, random_state=0)
     if classifier == 'SVM': # Linear Support Vector Regression, no better than chance
+        clf = SVC(gamma = 'scale', tol=1e-5)
+    if classifier == 'LinearSVC':
         clf = LinearSVC(tol=1e-10)
     if classifier == 'SGD': # no better than chance
         clf = SGDClassifier(loss='log',max_iter=1000000, tol=1e-3)
@@ -116,9 +118,12 @@ if __name__ == "__main__":
     if modality== 'Train_title' or modality== 'Train_all':
         with timer(">>>  read_track2_title"):
             item_id, seq = read_track2_title(chunk)
-            df_itemid = pd.DataFrame(item_id,columns = ['item_id'])
+            # combined_seq = concanate_title_dim(seq)
+            df_item_id = pd.DataFrame(item_id,columns = ['item_id'])
             df_seq = pd.DataFrame(seq,columns = ['title_{}'.format(i) for i in range(10)])
-            df_title = pd.concat([df_itemid,df_seq],axis = 1)
+            df_seq_concatenated = pd.DataFrame(concat_title_dim(df_seq, 16),columns = ['title_{}'.format(i) for i in range(16)])
+            print('>>> title dim generated')
+            df_title = pd.concat([df_item_id, df_seq_concatenated],axis = 1)
 
         with timer(">>> map title with train data"):
             seq_order = map_title(df, item_id, seq) # not sure why do this, and we didnot use this later
@@ -151,7 +156,7 @@ if __name__ == "__main__":
             df_model, random_state=SEED, shuffle=False, test_size=0.2)
 
     with timer("4. training the main model"):
-        classifier = 'SVM'
+        classifier = 'LinearSVC'
 
         x_train = df_train.loc[:, col_feat].values # Return a Numpy representation of the DataFrame.
         x_valid = df_valid.loc[:, col_feat].values
