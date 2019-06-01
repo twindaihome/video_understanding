@@ -12,6 +12,21 @@ paths = {'video_path': 'input/50w/track2_video_features_sorted_50w.txt', 'audio_
          'face_atts_path': 'input/50w/track2_face_attrs_sorted_50w.txt', 'final_path':'input/50w/final_track2_train_sorted_50w.txt',
         'title_path':'input/50w/track2_title_sorted_50w.txt','final_test_path':'input/final_track2_test_no_anwser_100000.txt'}
 
+paths = {'video_path': 'input/1w/track2_video_features_sorted_1w.txt',
+         'audio_path':'input/1w/track2_audio_features_sorted_1w.txt',
+         'face_atts_path': 'input/1w/track2_face_attrs_sorted_1w.txt',
+         'final_path':'input/1w/final_track2_train_sorted_1w.txt',
+         'title_path':'input/1w/track2_title_sorted_1w.txt',
+         'final_test_path':'input/final_track2_test_no_anwser_100000.txt'}
+
+paths = {'video_path': 'input/50w/track2_video_features_sorted_50w.txt',
+         'audio_path':'input/50w/track2_audio_features_sorted_50w.txt',
+         'face_atts_path': 'input/50w/track2_face_attrs_sorted_50w.txt',
+         'final_path':'input/50w/final_track2_train_sorted_50w.txt',
+         'title_path':'input/50w/track2_title_sorted_50w.txt',
+         'final_test_path':'input/final_track2_test_no_anwser_100000.txt'}
+
+
 def read_list_feature(path, keyname, chunkSize=4000000, dimLength=128, primaryKey='item_id'):
     rows = list()
     with open(path, 'r') as f:
@@ -121,6 +136,38 @@ def map_title(df, item_id, seq):
     idx = match[~idx_null]['idx'].astype(int).values
     return seq[idx]
 
+def list_intersection(title_table, word_dims, dimLength=16):
+    result = [0] * len(title_table.values)
+    for ti, title_words in enumerate(title_table.values):
+        result[ti] = [0] * dimLength
+        for title_word in title_words: #title words length is 8, the result df have no this dimension
+            for di, dim in enumerate(word_dims):
+                if di >= dimLength:
+                    break
+                if dim == title_word:
+                    result[ti][di] = 1
+
+    return result
+
+
+def concat_title_dim(df_title, dimLength=16):
+    df_combined = df_title['title_0'].map(str)
+    one_col = [df_title['title_0']]
+    for x in range(9):
+        df_combined += '-'
+        df_combined += df_title['title_'+ str(x)].map(str)
+        one_col.append(df_title['title_' + str(x)])
+
+    group = pd.value_counts(pd.concat(one_col))
+    clip_75 = group.describe()['75%']
+    df_view = group.reset_index().astype('int')
+    df_view = df_view.rename(columns={
+        'index': 'word_ids',
+        0: 'word_impression'
+    })
+    df_words = df_view.head(dimLength)
+    d1 = list_intersection(df_title, df_words['word_ids'], dimLength)
+    return d1
 
 @contextmanager
 def timer(name):
