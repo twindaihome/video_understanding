@@ -7,7 +7,7 @@ from contextlib import contextmanager
 import time
 import sys
 import features
-'''
+
 paths = {'video_path': 'input/1w/track2_video_features_sorted_1w.txt',
          'audio_path':'input/1w/track2_audio_features_sorted_1w.txt',
          'face_atts_path': 'input/1w/track2_face_attrs_sorted_1w.txt',
@@ -21,7 +21,7 @@ paths = {'video_path': 'input/50w/track2_video_features_sorted_50w.txt',
          'final_path':'input/50w/final_track2_train_sorted_50w.txt',
          'title_path':'input/50w/track2_title_sorted_50w.txt',
          'final_test_path':'input/final_track2_test_no_anwser_100000.txt'}
-
+'''
 
 def read_list_feature(path, keyname, chunkSize=4000000, dimLength=128, primaryKey='item_id'):
     rows = list()

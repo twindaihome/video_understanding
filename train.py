@@ -10,6 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import auc, roc_curve, roc_auc_score,accuracy_score,confusion_matrix
 import matplotlib.pyplot as plt
+from plot_confusion_matrix import plot_confusion_matrix
 
 # import tensorflow as tf
 import numpy as np
@@ -173,19 +174,32 @@ if __name__ == "__main__":
         print('features preparation done')
 
         y_train_finish, y_valid_finish = finish_train, finish_valid
-        model_finish = fusion(x_train,y_train_finish)
+        model_finish_early= fusion(x_train,y_train_finish,x_valid)
 
         y_train_like, y_valid_like = like_train, like_valid
-        model_like = fusion(x_train,y_train_like)
+        model_like = fusion(x_train,y_train_like,x_valid)
 
-        y_pred_finish = model_finish.predict(x_valid)
-        print('finish ROC ACC:', roc_auc_score(finish_valid, y_pred_finish))
-        print('finish confusion_matrix:', confusion_matrix(y_valid_finish, y_pred_finish))
-        print('finish accuracy_score:', accuracy_score(y_valid_finish, y_pred_finish))
-        #draw_roc(finish_valid, y_pred_finish,'Receiver operating characteristic Curve for finish')
+        y_pred_finish = model_finish_early.predict(x_valid)
+        #y_pred_finish_late = model_finish_late.predict(x_valid)
+        print('finish ROC ACC early:', roc_auc_score(finish_valid, y_pred_finish))
+        print('finish confusion_matrix early:', confusion_matrix(y_valid_finish, y_pred_finish))
+        plot_confusion_matrix(y_valid_finish, y_pred_finish, classes=[0,1], normalize=True,
+                              title='Normalized confusion matrix for finish prediction')
+        print('finish accuracy_score early :', accuracy_score(y_valid_finish, y_pred_finish))
+
+
+        # print('finish ROC ACC late:', roc_auc_score(finish_valid, y_pred_finish_late))
+        # print('finish confusion_matrix late:', confusion_matrix(y_valid_finish, y_pred_finish_late))
+        # plot_confusion_matrix(y_valid_finish, y_pred_finish_late, classes=[1, 0], normalize=True,
+        #                       title='Normalized confusion matrix_late')
+        # print('finish accuracy_score late :', accuracy_score(y_valid_finish, y_pred_finish_late))
+        draw_roc(finish_valid, y_pred_finish,'Receiver operating characteristic Curve for finish')
 
         y_pred_like = model_like.predict(x_valid)
         print('like ROC ACC:', roc_auc_score(like_valid, y_pred_like))
         print('like confusion_matrix:', confusion_matrix(y_valid_like, y_pred_like))
         print('like accuracy_score:', accuracy_score(y_valid_like, y_pred_like))
+        plot_confusion_matrix(like_valid, y_pred_like, classes=[0, 1],
+                              title='Confusion matrix for like prediction, without normalization')
         #draw_roc(like_valid, y_pred_like, 'Receiver operating characteristic Curve for like')
+        plt.show()
